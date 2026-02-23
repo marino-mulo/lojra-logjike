@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <title>Lojra Logjike</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <link rel="icon" type="image/png" href="AL-logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <app-root>
+    <style>
+      .app-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FFF8F0;
+      }
+      .app-loading img {
+        width: 96px;
+        height: 96px;
+        animation: pre-pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes pre-pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.04); }
+      }
+    </style>
+    <div class="app-loading">
+      <img src="AL-logo.png" alt="Lojra Logjike">
+    </div>
+  </app-root>
+</body>
+</html>

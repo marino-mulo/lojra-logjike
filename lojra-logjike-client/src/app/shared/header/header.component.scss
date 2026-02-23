@@ -1,0 +1,233 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--white);
+  border-bottom: var(--border);
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--black);
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Day selector button ── */
+.header-day-btn {
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e2e2;
+  background: var(--cream);
+  color: var(--black);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: var(--black);
+    background: var(--white);
+  }
+
+  .chevron {
+    opacity: 0.5;
+  }
+}
+
+/* ── Day selector modal ── */
+.day-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(0, 0, 0, 0.15);
+  animation: dayOverlayIn 0.15s ease;
+}
+
+@keyframes dayOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.day-modal {
+  position: fixed;
+  z-index: 200;
+  background: var(--white);
+  border: 2px solid var(--black);
+  border-radius: 14px;
+  box-shadow: 4px 4px 0 var(--black);
+  padding: 8px;
+  min-width: 200px;
+  animation: dayModalIn 0.15s ease;
+}
+
+@keyframes dayModalIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.day-modal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--black);
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: left;
+
+  &:hover:not(:disabled):not(.selected) {
+    background: var(--cream);
+  }
+
+  &.selected {
+    color: var(--white);
+    font-weight: 800;
+  }
+
+  &.completed {
+    color: #16a34a;
+  }
+
+  &.today:not(.selected) {
+    font-weight: 800;
+  }
+
+  &.locked {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.day-modal-name {
+  flex: 1;
+}
+
+.day-modal-check {
+  flex-shrink: 0;
+}
+
+.day-modal-today-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #FFF7ED;
+  color: #C2410C;
+  border: 1px solid #FDBA74;
+}
+
+.nav-link {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: none;
+  padding: 6px 16px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--cream);
+  }
+}
+
+/* ── Game page icon buttons (? and ⚙) ── */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--black);
+  background: var(--white);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1;
+  transition: all 0.15s;
+  box-shadow: 2px 2px 0 var(--black);
+  color: var(--black);
+
+  &:hover {
+    background: var(--cream);
+    transform: translateY(-1px);
+    box-shadow: 2px 3px 0 var(--black);
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 0 var(--black);
+  }
+}
+
+@media (max-width: 480px) {
+  .header-inner {
+    padding: 12px 16px;
+  }
+
+  .logo-text {
+    font-size: 1.2rem;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+
+  .header-day-btn {
+    font-size: 0.78rem;
+    padding: 5px 10px;
+    gap: 4px;
+  }
+
+  .day-modal {
+    min-width: 180px;
+  }
+}

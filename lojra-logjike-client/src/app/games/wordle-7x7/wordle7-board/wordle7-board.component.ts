@@ -1,0 +1,118 @@
+import { Component, Input, Output, EventEmitter, effect } from '@angular/core';
+import { Wordle7GameService, CellColor } from '../wordle7-game.service';
+
+// Cell size lookup to keep total board around ~388px wide
+const CELL_SIZE_MAP: Record<number, number> = { 7: 52, 8: 45, 9: 39, 10: 35 };
+const FONT_SIZE_MAP: Record<number, number> = { 7: 22, 8: 20, 9: 17, 10: 15 };
+
+@Component({
+  selector: 'app-wordle7-board',
+  standalone: true,
+  imports: [],
+  templateUrl: './wordle7-board.component.html',
+  styleUrl: './wordle7-board.component.scss'
+})
+export class Wordle7BoardComponent {
+  @Input({ required: true }) game!: Wordle7GameService;
+  @Output() win = new EventEmitter<void>();
+
+  private winEmitted = false;
+  private previousWonState = false;
+
+  readonly gap = 3;
+  readonly borderWidth = 2.5;
+  readonly outerRadius = 14;
+
+  constructor() {
+    effect(() => {
+      const won = this.game.gameWon();
+      const restored = this.game.isRestored();
+      if (won && !this.previousWonState && !this.winEmitted && !restored) {
+        this.winEmitted = true;
+        setTimeout(() => this.win.emit(), 600);
+      } else if (!won) {
+        this.winEmitted = false;
+      }
+      this.previousWonState = won;
+    });
+  }
+
+  get gridSize(): number {
+    return this.game.getGridSize();
+  }
+
+  get cellSize(): number {
+    return CELL_SIZE_MAP[this.gridSize] ?? 52;
+  }
+
+  get fontSize(): number {
+    return FONT_SIZE_MAP[this.gridSize] ?? 22;
+  }
+
+  get borderRadius(): number {
+    return this.cellSize >= 45 ? 10 : 8;
+  }
+
+  get svgWidth(): number {
+    return this.gridSize * this.cellSize + (this.gridSize + 1) * this.gap;
+  }
+
+  get svgHeight(): number {
+    return this.svgWidth;
+  }
+
+  get cells(): { row: number; col: number }[] {
+    const cells: { row: number; col: number }[] = [];
+    const size = this.gridSize;
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        cells.push({ row: r, col: c });
+      }
+    }
+    return cells;
+  }
+
+  cellX(col: number): number {
+    return this.gap + col * (this.cellSize + this.gap);
+  }
+
+  cellY(row: number): number {
+    return this.gap + row * (this.cellSize + this.gap);
+  }
+
+  getLetter(row: number, col: number): string {
+    const g = this.game.grid();
+    if (g.length === 0) return '';
+    return g[row][col];
+  }
+
+  isBlocked(row: number, col: number): boolean {
+    return this.getLetter(row, col) === 'X';
+  }
+
+  isSelected(row: number, col: number): boolean {
+    const sel = this.game.selectedCell();
+    return sel !== null && sel.row === row && sel.col === col;
+  }
+
+  /** Get Wordle-style color for a cell */
+  getCellColor(row: number, col: number): CellColor {
+    return this.game.cellColors().get(`${row},${col}`) ?? 'grey';
+  }
+
+  /** All letter cells are always colored (green/yellow/grey) */
+  isColoredCell(_row: number, _col: number): boolean {
+    return true;
+  }
+
+  /** Green cells are locked — can't be selected or swapped */
+  isLocked(row: number, col: number): boolean {
+    return this.getCellColor(row, col) === 'green';
+  }
+
+  onCellClick(row: number, col: number): void {
+    if (this.game.gameWon()) return;
+    if (this.isLocked(row, col)) return;
+    this.game.selectCell(row, col);
+  }
+}

@@ -1,0 +1,82 @@
+.wordle7-board-wrapper {
+  display: inline-block;
+  line-height: 0;
+  border-radius: 16px;
+  box-shadow: 6px 6px 0px var(--black);
+  touch-action: manipulation;
+}
+
+.wordle7-board-svg {
+  display: block;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════
+   Cell styles — Wordle colors
+   ══════════════════════════════════════ */
+.letter-cell {
+  cursor: pointer;
+  transition: fill 0.3s ease;
+}
+
+.cell-green {
+  fill: #6aaa64;
+}
+
+.cell-yellow {
+  fill: #c9b458;
+}
+
+.cell-grey {
+  fill: #787c7e;
+}
+
+.cell-locked {
+  cursor: default;
+}
+
+.cell-won {
+  fill: #6aaa64;
+  animation: wonPulse 0.6s ease;
+}
+
+/* ══════════════════════════════════════
+   Letter text
+   ══════════════════════════════════════ */
+.letter-text {
+  font-family: var(--font-display);
+  font-weight: 900;
+  /* font-size set dynamically via [attr.font-size] in template */
+  fill: #1a1a1a;
+  cursor: pointer;
+  user-select: none;
+  pointer-events: none;
+  transition: fill 0.3s ease;
+}
+
+/* White text on colored cells (green/yellow/grey) */
+.text-colored {
+  fill: #FFFFFF;
+}
+
+.text-won {
+  fill: #FFFFFF;
+}
+
+/* ══════════════════════════════════════
+   Selection ring animation
+   ══════════════════════════════════════ */
+.selection-ring {
+  animation: selectPulse 1s ease infinite;
+}
+
+@keyframes selectPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes wonPulse {
+  0% { transform-origin: center; }
+  50% { fill: #4ADE80; }
+  100% { fill: #6aaa64; }
+}

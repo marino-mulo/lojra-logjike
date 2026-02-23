@@ -1,0 +1,146 @@
+<!-- Top Strip: Timer + Name + Swaps/Pastro -->
+<div class="top-strip">
+  @if (isReplay()) {
+    <div class="game-timer solved">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"/>
+      </svg>
+      <span>Zgjidhur</span>
+    </div>
+  } @else {
+    <div class="game-timer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>{{ game.formatTime(game.timerSeconds()) }}</span>
+    </div>
+  }
+  <span class="game-name">Fjalëkryq</span>
+  @if (isCompleted() && !isReplay()) {
+    <button class="clear-btn" (click)="onReset()" title="Pastro tabelën">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Pastro
+    </button>
+  } @else {
+    <div class="swap-counter">
+      <span class="swap-count">{{ game.swapCount() }}</span>
+      <span class="swap-label">shkëmbime</span>
+    </div>
+  }
+</div>
+
+<!-- Game Content (board-width container) -->
+<div class="game-content">
+  <div class="board-area">
+    <app-wordle7-board [game]="game" (win)="onWin()" />
+  </div>
+
+  @if (isCompleted() && !isReplay()) {
+    <div class="completed-card">
+      <span class="completed-card-label">{{ completedPraise() }}</span>
+      <span class="completed-card-time">{{ game.formatTime(completedTime()) }} &middot; {{ completedSwaps() }} shkëmbime</span>
+    </div>
+  }
+
+  @if (game.hintMessage()) {
+    <div class="hint-message">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18h6"/><path d="M10 22h4"/>
+        <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
+      </svg>
+      {{ game.hintMessage() }}
+    </div>
+  }
+
+  @if (!isCompleted() || isReplay()) {
+    <div class="bottom-controls">
+      <button class="control-btn reset-btn" [disabled]="game.swapCount() > 0 && !game.gameWon()" (click)="onReset()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        </svg>
+        Fillo përsëri
+      </button>
+      <button class="control-btn hint-btn" [class.cooling]="game.hintCooldown()" [disabled]="!game.canHint()" (click)="onHint()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18h6"/><path d="M10 22h4"/>
+          <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
+        </svg>
+        @if (game.hintCooldown()) {
+          Ndihmë ({{ game.hintCooldownRemaining() }}s)
+        } @else {
+          Ndihmë
+        }
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Win Modal (not shown in replay) -->
+@if (showModal && !isReplay()) {
+  <div class="modal-overlay active" (click)="closeModal()">
+    <div class="modal win-modal" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="closeModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <h2>Urime!</h2>
+      <p>{{ completedSwaps() }} shkëmbime &middot; {{ game.formatTime(completedTime()) }}</p>
+      @if (hasPreviousDay()) {
+        <button class="btn btn--primary" (click)="playPreviousDay()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Luaj ditën e kaluar
+        </button>
+      }
+    </div>
+  </div>
+}
+
+<!-- Pause Modal -->
+@if (showPause) {
+  <div class="modal-overlay active">
+    <div class="modal pause-modal" (click)="$event.stopPropagation()">
+      <p class="pause-date">{{ getTodayDateLabel() }}</p>
+      <h2 class="pause-title">Loja në pauzë</h2>
+      <p class="pause-time">Ke kaluar {{ game.formatTime(game.timerSeconds()) }}.</p>
+      <button class="btn btn--primary pause-resume-btn" (click)="resumeGame()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        Vazhdo
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Info Modal -->
+@if (showInfo) {
+  <div class="modal-overlay active" (click)="closeInfo()">
+    <div class="modal info-modal" (click)="$event.stopPropagation()">
+      <h2>Si luhet Fjalëkryqi</h2>
+      <div class="info-rules">
+        <div class="info-rule">
+          <div class="info-rule-num">1</div>
+          <p>Shkronjat janë të përziara — kliko dy qeliza për t'i shkëmbyer.</p>
+        </div>
+        <div class="info-rule">
+          <div class="info-rule-num">2</div>
+          <p><span class="info-color info-color-green"></span> <strong>Jeshile</strong> — shkronja është në vendin e duhur.</p>
+        </div>
+        <div class="info-rule">
+          <div class="info-rule-num">3</div>
+          <p><span class="info-color info-color-yellow"></span> <strong>Verdhë</strong> — shkronja i përket fjalës por është në vendin e gabuar.</p>
+        </div>
+        <div class="info-rule">
+          <div class="info-rule-num">4</div>
+          <p><span class="info-color info-color-grey"></span> <strong>Gri</strong> — shkronja nuk i përket asnjë fjale në atë pozicion.</p>
+        </div>
+      </div>
+      <button class="btn btn--primary" (click)="closeInfo()">Luaj</button>
+    </div>
+  </div>
+}

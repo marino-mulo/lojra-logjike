@@ -1,0 +1,31 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { ZipPuzzle } from '../models/zip-puzzle.model';
+import { QueensPuzzle } from '../models/queens-puzzle.model';
+import { Wordle7Puzzle } from '../models/wordle7-puzzle.model';
+
+@Injectable({ providedIn: 'root' })
+export class PuzzleService {
+  private http = inject(HttpClient);
+
+  getZipToday(): Observable<ZipPuzzle> {
+    return this.http.get<ZipPuzzle>('/api/puzzles/zip/today');
+  }
+
+  getZipByDay(dayIndex: number): Observable<ZipPuzzle> {
+    return this.http.get<ZipPuzzle>(`/api/puzzles/zip/${dayIndex}`);
+  }
+
+  getQueensToday(): Observable<QueensPuzzle> {
+    return this.http.get<QueensPuzzle>('/api/puzzles/queens/today');
+  }
+
+  getQueensByDay(dayIndex: number): Observable<QueensPuzzle> {
+    return this.http.get<QueensPuzzle>(`/api/puzzles/queens/${dayIndex}`);
+  }
+
+  getWordle7ByDay(dayIndex: number): Observable<Wordle7Puzzle> {
+    return this.http.get<Wordle7Puzzle>(`/api/puzzles/wordle7/${dayIndex}`);
+  }
+}

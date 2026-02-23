@@ -1,0 +1,95 @@
+/* ══════════════════════════════════════
+   Queens Board – Pure SVG Design
+   ══════════════════════════════════════ */
+
+.queens-board-wrapper {
+  display: inline-block;
+  line-height: 0;
+  border-radius: 16px;
+  box-shadow: 6px 6px 0px var(--black);
+}
+
+.queens-board-svg {
+  display: block;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── Interaction Cells (invisible SVG rects) ── */
+.interaction-cell {
+  fill: transparent;
+  cursor: pointer;
+
+  &:hover {
+    fill: rgba(225, 29, 72, 0.08);
+  }
+
+  &.has-queen:hover {
+    fill: rgba(225, 29, 72, 0.04);
+  }
+}
+
+/* ── Hint Cell Highlight ── */
+.hint-cell {
+  pointer-events: none;
+  animation: hint-pulse 0.5s ease-in-out infinite alternate;
+  stroke: #E11D48;
+  stroke-width: 2.5;
+}
+
+@keyframes hint-pulse {
+  0% {
+    fill: rgba(225, 29, 72, 0.08);
+  }
+  100% {
+    fill: rgba(225, 29, 72, 0.3);
+  }
+}
+
+/* ── Conflict Overlay (red diagonal stripes) ── */
+.conflict-cell {
+  pointer-events: none;
+  animation: conflict-flash 0.4s ease-out;
+}
+
+@keyframes conflict-flash {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ── X Marks ── */
+.mark-x {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* ── Queen Icons ── */
+.queen-icon {
+  pointer-events: none;
+  transition: filter 0.3s;
+}
+
+/* ── Win: pulsing glow on queens ── */
+.queen-win {
+  animation: queen-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes queen-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 2px rgba(225, 29, 72, 0.2));
+  }
+  50% {
+    filter: brightness(1.15) drop-shadow(0 0 12px rgba(225, 29, 72, 0.6));
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .queens-board-wrapper {
+    box-shadow: 4px 4px 0px var(--black);
+  }
+}

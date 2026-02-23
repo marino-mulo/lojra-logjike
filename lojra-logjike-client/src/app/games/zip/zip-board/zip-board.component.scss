@@ -1,0 +1,94 @@
+/* ══════════════════════════════════════
+   Zip Board – Pure SVG Design
+   ══════════════════════════════════════ */
+
+.zip-board-wrapper {
+  display: inline-block;
+  line-height: 0; // prevents extra space below SVG
+  border-radius: 16px;
+  box-shadow: 6px 6px 0px var(--black);
+}
+
+.zip-board-svg {
+  display: block;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ── Interaction Cells (invisible SVG rects) ── */
+.interaction-cell {
+  fill: transparent;
+  cursor: pointer;
+
+  &:not(.on-path):hover {
+    fill: rgba(168, 85, 247, 0.06);
+  }
+}
+
+/* ── Next Target (pulsing hint) ── */
+.interaction-cell.next-target {
+  animation: pulse-target 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-target {
+  0%, 100% {
+    fill: rgba(168, 85, 247, 0.04);
+  }
+  50% {
+    fill: rgba(168, 85, 247, 0.12);
+  }
+}
+
+/* ── Tube Segments ── */
+.tube-segment {
+  transition: filter 0.3s;
+}
+
+.tube-head {
+  filter: brightness(1.12);
+}
+
+/* ── Win: pulsing glow on entire tube ── */
+.tube-win {
+  animation: tube-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes tube-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 2px rgba(168, 85, 247, 0.2));
+  }
+  50% {
+    filter: brightness(1.18) drop-shadow(0 0 14px rgba(168, 85, 247, 0.7));
+  }
+}
+
+/* ── Checkpoint Number Overlays ── */
+.checkpoint-overlay {
+  pointer-events: none;
+}
+
+.checkpoint-bg {
+  fill: #4C1D95;
+  stroke: #7C3AED;
+  stroke-width: 2;
+  transition: fill 0.2s, stroke 0.2s;
+}
+
+.checkpoint-overlay.on-path .checkpoint-bg {
+  fill: #5B21B6;
+  stroke: #A78BFA;
+}
+
+.checkpoint-text {
+  fill: white;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .checkpoint-text {
+    font-size: 11px;
+  }
+}
