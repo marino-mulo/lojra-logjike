@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { ZipPuzzle } from '../models/zip-puzzle.model';
 import { QueensPuzzle } from '../models/queens-puzzle.model';
 import { Wordle7Puzzle } from '../models/wordle7-puzzle.model';
+import { TangoPuzzle } from '../models/tango-puzzle.model';
+import { StarsPuzzle } from '../models/stars-puzzle.model';
 
 @Injectable({ providedIn: 'root' })
 export class PuzzleService {
@@ -27,5 +29,21 @@ export class PuzzleService {
 
   getWordle7ByDay(dayIndex: number): Observable<Wordle7Puzzle> {
     return this.http.get<Wordle7Puzzle>(`/api/puzzles/wordle7/${dayIndex}`);
+  }
+
+  getTangoToday(): Observable<TangoPuzzle> {
+    return this.http.get<TangoPuzzle>('/api/puzzles/tango/today');
+  }
+
+  getTangoByDay(dayIndex: number): Observable<TangoPuzzle> {
+    return this.http.get<TangoPuzzle>(`/api/puzzles/tango/${dayIndex}`);
+  }
+
+  getStarsToday(): Observable<StarsPuzzle> {
+    return this.http.get<StarsPuzzle>('/api/puzzles/stars/today');
+  }
+
+  getStarsByDay(dayIndex: number): Observable<StarsPuzzle> {
+    return this.http.get<StarsPuzzle>(`/api/puzzles/stars/${dayIndex}`);
   }
 }

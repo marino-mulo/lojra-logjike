@@ -48,4 +48,32 @@ public class PuzzlesController : ControllerBase
         var puzzle = Wordle7PuzzleData.GetPuzzleByDay(dayIndex);
         return Ok(puzzle);
     }
+
+    [HttpGet("tango/today")]
+    public IActionResult GetTodayTango()
+    {
+        var puzzle = TangoPuzzleData.GetTodayPuzzle();
+        return Ok(puzzle);
+    }
+
+    [HttpGet("tango/{dayIndex:int}")]
+    public IActionResult GetTangoByDay(int dayIndex)
+    {
+        var puzzle = TangoPuzzleData.GetPuzzleByDay(dayIndex);
+        return Ok(puzzle);
+    }
+
+    [HttpGet("stars/today")]
+    public IActionResult GetTodayStars()
+    {
+        var puzzle = StarsPuzzleData.GetTodayPuzzle();
+        return Ok(puzzle);
+    }
+
+    [HttpGet("stars/{dayIndex:int}")]
+    public IActionResult GetStarsByDay(int dayIndex)
+    {
+        var puzzle = StarsPuzzleData.GetPuzzleByDay(dayIndex);
+        return Ok(puzzle);
+    }
 }

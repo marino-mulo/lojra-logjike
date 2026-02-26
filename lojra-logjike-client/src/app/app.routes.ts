@@ -18,6 +18,10 @@ export const routes: Routes = [
     loadComponent: () => import('./games/stars/stars.component').then(m => m.StarsComponent)
   },
   {
+    path: 'games/stars/:day',
+    loadComponent: () => import('./games/stars/stars.component').then(m => m.StarsComponent)
+  },
+  {
     path: 'games/queens',
     loadComponent: () => import('./games/queens/queens.component').then(m => m.QueensComponent)
   },
@@ -35,6 +39,10 @@ export const routes: Routes = [
   },
   {
     path: 'games/tango',
+    loadComponent: () => import('./games/tango/tango.component').then(m => m.TangoComponent)
+  },
+  {
+    path: 'games/tango/:day',
     loadComponent: () => import('./games/tango/tango.component').then(m => m.TangoComponent)
   },
   { path: '**', redirectTo: '' }

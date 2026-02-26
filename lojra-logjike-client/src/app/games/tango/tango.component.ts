@@ -1,24 +1,334 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, HostListener } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { TangoBoardComponent } from './tango-board/tango-board.component';
+import { TangoGameService } from './tango-game.service';
+import { PuzzleService } from '../../core/services/puzzle.service';
+import { GameHeaderService, DayBarItem } from '../../core/services/game-header.service';
+
+interface WeekDay {
+  index: number;
+  name: string;
+  letter: string;
+  slug: string;
+}
+
+interface SavedResult {
+  time: number;
+  date: string;
+  board?: number[][];
+}
+
+interface SavedProgress {
+  board: number[][];
+  timerSeconds: number;
+  date: string;
+}
+
+const DAY_SLUGS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 @Component({
   selector: 'app-tango',
   standalone: true,
-  template: `
-    <div class="placeholder">
-      <svg width="80" height="80" viewBox="0 0 64 64">
-        <rect x="6" y="6" width="24" height="24" rx="4" fill="#FFF7ED" stroke="#1a1a1a" stroke-width="2"/>
-        <rect x="34" y="6" width="24" height="24" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="2"/>
-        <rect x="6" y="34" width="24" height="24" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="2"/>
-        <rect x="34" y="34" width="24" height="24" rx="4" fill="#FFF7ED" stroke="#1a1a1a" stroke-width="2"/>
-        <line x1="31" y1="15" x2="33" y2="15" stroke="#F97316" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="31" y1="19" x2="33" y2="19" stroke="#F97316" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="30.5" y1="43" x2="33.5" y2="49" stroke="#E11D48" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="33.5" y1="43" x2="30.5" y2="49" stroke="#E11D48" stroke-width="2.5" stroke-linecap="round"/>
-      </svg>
-      <h2>Tango</h2>
-      <p>Se shpejti...</p>
-    </div>
-  `,
-  styles: [`.placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:48px 24px}h2{font-family:var(--font-display);font-size:1.6rem;font-weight:900}p{color:#888;font-weight:600;font-size:1.1rem}`]
+  imports: [TangoBoardComponent],
+  providers: [TangoGameService],
+  templateUrl: './tango.component.html',
+  styleUrl: './tango.component.scss'
 })
-export class TangoComponent {}
+export class TangoComponent implements OnInit, OnDestroy {
+  private puzzleService = inject(PuzzleService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private gameHeader = inject(GameHeaderService);
+  game = inject(TangoGameService);
+
+  private subs: Subscription[] = [];
+
+  dayLabel = '';
+  showModal = false;
+  showInfo = false;
+  selectedDay = signal(-1);
+  todayIndex = -1;
+
+  completedTime = signal(0);
+  isCompleted = signal(false);
+  isPractice = signal(false);
+  completedPraise = signal('Bravo!');
+
+  private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
+  private pickPraise(): string {
+    return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)];
+  }
+
+  showPause = false;
+
+  weekDays: WeekDay[] = [
+    { index: 0, name: 'E Hënë', letter: 'H', slug: 'monday' },
+    { index: 1, name: 'E Martë', letter: 'M', slug: 'tuesday' },
+    { index: 2, name: 'E Mërkurë', letter: 'M', slug: 'wednesday' },
+    { index: 3, name: 'E Enjte', letter: 'E', slug: 'thursday' },
+    { index: 4, name: 'E Premte', letter: 'P', slug: 'friday' },
+    { index: 5, name: 'E Shtunë', letter: 'Sh', slug: 'saturday' },
+    { index: 6, name: 'E Diel', letter: 'D', slug: 'sunday' },
+  ];
+
+  ngOnInit(): void {
+    this.todayIndex = this.getTodayIndex();
+    this.gameHeader.enterGame();
+    this.gameHeader.gameColor.set('#F97316');
+
+    this.subs.push(
+      this.gameHeader.infoClicked$.subscribe(() => this.openInfo()),
+      this.gameHeader.daySelected$.subscribe(idx => this.navigateToDay(idx)),
+    );
+
+    this.subs.push(this.route.paramMap.subscribe(params => {
+      const daySlug = params.get('day');
+
+      if (!daySlug) {
+        this.router.navigate(['/games/tango', DAY_SLUGS[this.todayIndex]], { replaceUrl: true });
+        return;
+      }
+
+      const dayIndex = DAY_SLUGS.indexOf(daySlug.toLowerCase());
+
+      if (dayIndex === -1 || dayIndex > this.todayIndex) {
+        this.router.navigate(['/games/tango', DAY_SLUGS[this.todayIndex]], { replaceUrl: true });
+        return;
+      }
+
+      this.loadPuzzle(dayIndex);
+    }));
+  }
+
+  ngOnDestroy(): void {
+    this.saveProgress();
+    this.game.destroy();
+    this.gameHeader.leaveGame();
+    this.subs.forEach(s => s.unsubscribe());
+  }
+
+  private getTodayIndex(): number {
+    const jsDay = new Date().getDay();
+    return jsDay === 0 ? 6 : jsDay - 1;
+  }
+
+  private getWeekKey(): string {
+    const now = new Date();
+    const monday = new Date(now);
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    monday.setDate(now.getDate() + diff);
+    return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+  }
+
+  private storageKey(dayIndex: number): string {
+    return `tango_${this.getWeekKey()}_${dayIndex}`;
+  }
+
+  private progressKey(dayIndex: number): string {
+    return `tango_progress_${this.getWeekKey()}_${dayIndex}`;
+  }
+
+  private getSavedResult(dayIndex: number): SavedResult | null {
+    try {
+      const raw = localStorage.getItem(this.storageKey(dayIndex));
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private saveResult(dayIndex: number, time: number, board: number[][]): void {
+    const result: SavedResult = { time, date: new Date().toISOString(), board };
+    localStorage.setItem(this.storageKey(dayIndex), JSON.stringify(result));
+  }
+
+  isDayCompleted(dayIndex: number): boolean {
+    return this.getSavedResult(dayIndex) !== null;
+  }
+
+  private getSavedProgress(dayIndex: number): SavedProgress | null {
+    try {
+      const raw = localStorage.getItem(this.progressKey(dayIndex));
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private saveProgress(): void {
+    const dayIndex = this.selectedDay();
+    if (dayIndex < 0) return;
+    if (this.isCompleted() || this.isPractice()) return;
+    const snapshot = this.game.getProgressSnapshot();
+    if (!snapshot) return;
+    const progress: SavedProgress = {
+      board: snapshot.board,
+      timerSeconds: snapshot.timerSeconds,
+      date: new Date().toISOString(),
+    };
+    localStorage.setItem(this.progressKey(dayIndex), JSON.stringify(progress));
+  }
+
+  private clearProgress(dayIndex: number): void {
+    localStorage.removeItem(this.progressKey(dayIndex));
+  }
+
+  private loadPuzzle(dayIndex: number): void {
+    this.selectedDay.set(dayIndex);
+    this.showModal = false;
+    this.showPause = false;
+    this.isPractice.set(false);
+    this.game.destroy();
+
+    const saved = this.getSavedResult(dayIndex);
+
+    this.puzzleService.getTangoByDay(dayIndex).subscribe(puzzle => {
+      this.dayLabel = puzzle.dayName;
+      this.game.initPuzzle(puzzle);
+
+      if (saved) {
+        this.isCompleted.set(true);
+        this.completedTime.set(saved.time);
+        this.completedPraise.set(this.pickPraise());
+        this.game.destroy();
+        this.game.timerSeconds.set(saved.time);
+
+        if (saved.board && saved.board.length > 0) {
+          this.game.restoreCompleted(saved.board);
+        }
+      } else {
+        const progress = this.getSavedProgress(dayIndex);
+        if (progress && progress.board.length > 0) {
+          this.game.restorePaused(progress.board, progress.timerSeconds);
+          this.isCompleted.set(false);
+          this.completedTime.set(0);
+          this.showPause = true;
+        } else {
+          this.isCompleted.set(false);
+          this.completedTime.set(0);
+        }
+      }
+
+      this.updateDayBar();
+    });
+  }
+
+  navigateToDay(dayIndex: number): void {
+    this.router.navigate(['/games/tango', DAY_SLUGS[dayIndex]]);
+  }
+
+  isDayAccessible(dayIndex: number): boolean {
+    return dayIndex <= this.todayIndex;
+  }
+
+  onWin(): void {
+    const dayIndex = this.selectedDay();
+
+    if (!this.isPractice()) {
+      const time = this.game.timerSeconds();
+      const winningBoard = this.game.board().map(row => [...row]);
+      this.saveResult(dayIndex, time, winningBoard);
+      this.isCompleted.set(true);
+      this.completedTime.set(time);
+      this.completedPraise.set(this.pickPraise());
+      this.clearProgress(dayIndex);
+    }
+
+    this.showModal = true;
+  }
+
+  onHint(): void {
+    this.game.hint();
+  }
+
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    if (document.hidden) {
+      this.pauseGame();
+    }
+  }
+
+  @HostListener('window:beforeunload')
+  onBeforeUnload(): void {
+    this.saveProgress();
+  }
+
+  pauseGame(): void {
+    if (this.game.gameWon() || this.isCompleted() || this.isPractice()) return;
+    this.game.pauseTimer();
+    this.saveProgress();
+    this.showPause = true;
+  }
+
+  resumeGame(): void {
+    this.showPause = false;
+    this.clearProgress(this.selectedDay());
+    this.game.resumeTimer();
+  }
+
+  getTodayDateLabel(): string {
+    const days = ['E Diel', 'E Hënë', 'E Martë', 'E Mërkurë', 'E Enjte', 'E Premte', 'E Shtunë'];
+    const months = ['Janar', 'Shkurt', 'Mars', 'Prill', 'Maj', 'Qershor', 'Korrik', 'Gusht', 'Shtator', 'Tetor', 'Nëntor', 'Dhjetor'];
+    const now = new Date();
+    const day = days[now.getDay()];
+    const month = months[now.getMonth()];
+    const date = now.getDate();
+    return `${day}, ${date} ${month}`;
+  }
+
+  closeModal(): void { this.showModal = false; }
+  openInfo(): void { this.showInfo = true; }
+  closeInfo(): void { this.showInfo = false; }
+
+  onClear(): void {
+    const dayIndex = this.selectedDay();
+    const saved = this.getSavedResult(dayIndex);
+    this.clearProgress(dayIndex);
+    this.showModal = false;
+    if (saved) {
+      this.isPractice.set(true);
+      this.isCompleted.set(false);
+      this.game.resetPractice();
+    } else {
+      this.isPractice.set(false);
+      this.game.reset();
+    }
+  }
+
+  private updateDayBar(): void {
+    const items: DayBarItem[] = this.weekDays.map(d => ({
+      index: d.index,
+      letter: d.letter,
+      name: d.name,
+      accessible: d.index <= this.todayIndex,
+      completed: this.isDayCompleted(d.index),
+      isToday: d.index === this.todayIndex,
+    }));
+    this.gameHeader.setDayBar(items, this.selectedDay());
+  }
+
+  hasPreviousDay(): boolean {
+    const current = this.selectedDay();
+    if (current <= 0) return false;
+    for (let i = current - 1; i >= 0; i--) {
+      if (this.isDayAccessible(i) && !this.isDayCompleted(i)) return true;
+    }
+    return current > 0;
+  }
+
+  playPreviousDay(): void {
+    const current = this.selectedDay();
+    this.showModal = false;
+    for (let i = current - 1; i >= 0; i--) {
+      if (this.isDayAccessible(i) && !this.isDayCompleted(i)) {
+        this.navigateToDay(i);
+        return;
+      }
+    }
+    if (current > 0) {
+      this.navigateToDay(current - 1);
+    }
+  }
+}
