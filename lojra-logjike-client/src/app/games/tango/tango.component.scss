@@ -94,6 +94,8 @@
   flex-direction: column;
   justify-content: flex-start;
   margin-top: 12px;
+  width: 0;
+  min-width: 100%;
 }
 
 .conflict-message {

@@ -62,14 +62,18 @@
       <!-- Star icons -->
       @for (i of cells; track i) {
         @if (isStar(i)) {
-          <g class="star-icon"
-             [class.star-win]="game.gameWon()"
-             [attr.transform]="'translate(' + starX(i) + ',' + starY(i) + ')'">
-            <!-- 5-pointed star polygon -->
-            <g [attr.transform]="'scale(' + (starSize / 24) + ') translate(-12, -12)'">
-              <polygon
-                points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                fill="#F59E0B" stroke="#B45309" stroke-width="1.2" stroke-linejoin="round"/>
+          <!-- Outer g: positioning only -->
+          <g [attr.transform]="'translate(' + starX(i) + ',' + starY(i) + ')'">
+            <!-- Inner g: animation target -->
+            <g class="star-icon"
+               [class.star-win]="game.gameWon()"
+               [style.animation-delay]="game.gameWon() ? (starWinDelay(i) + 'ms') : '0ms'">
+              <g [attr.transform]="'scale(' + (starSize / 24) + ') translate(-12, -12)'">
+                <polygon
+                  points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
+                  fill="#F59E0B" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"
+                  paint-order="stroke fill"/>
+              </g>
             </g>
           </g>
         }

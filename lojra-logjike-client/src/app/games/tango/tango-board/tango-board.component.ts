@@ -104,15 +104,11 @@ export class TangoBoardComponent {
     return lines;
   }
 
-  // Moon crescent as two arcs: outer full circle + inner bite
+  // Moon as a crescent (two arcs: outer semicircle + flatter inner arc)
   moonPath(cx: number, cy: number): string {
     const R = this.symbolRadius;
-    const bite = 6; // how far the inner circle is offset
-    // Outer arc (full left side of moon)
-    // Inner arc (bite from right side)
-    return `M ${cx - 1},${cy - R}
-      A ${R},${R} 0 1,0 ${cx - 1},${cy + R}
-      A ${R - bite},${R - bite} 0 1,1 ${cx - 1},${cy - R} Z`;
+    const innerR = R * 1.5;
+    return `M ${cx},${cy - R} A ${R},${R} 0 0,0 ${cx},${cy + R} A ${innerR},${innerR} 0 0,1 ${cx},${cy - R}`;
   }
 
   // Constraint display positions — placed on the border between two cells

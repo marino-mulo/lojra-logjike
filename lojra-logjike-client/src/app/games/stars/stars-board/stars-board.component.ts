@@ -60,9 +60,8 @@ export class StarsBoardComponent {
   cellX(i: number): number { return this.cellCol(i) * this.cellSize; }
   cellY(i: number): number { return this.cellRow(i) * this.cellSize; }
 
-  zoneColor(i: number): string {
-    const zone = this.game.getZones()[this.cellRow(i)]?.[this.cellCol(i)] ?? 0;
-    return this.zoneColors[zone % this.zoneColors.length];
+  zoneColor(_i: number): string {
+    return '#ffffff';
   }
 
   isStar(i: number): boolean {
@@ -110,7 +109,14 @@ export class StarsBoardComponent {
   starX(i: number): number { return this.cellX(i) + this.cellSize / 2; }
   starY(i: number): number { return this.cellY(i) + this.cellSize / 2; }
 
-  get xSize(): number { return this.cellSize * 0.22; }
+  /** Staggered delay for each star's win dance animation */
+  starWinDelay(i: number): number {
+    const starCells = this.cells.filter(c => this.isStar(c));
+    const idx = starCells.indexOf(i);
+    return idx >= 0 ? idx * 120 : 0;
+  }
+
+  get xSize(): number { return this.cellSize * 0.16; }
 
   // ── Drag state ──
   private dragging = false;

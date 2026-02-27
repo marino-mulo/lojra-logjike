@@ -81,10 +81,8 @@ export class StarsGameService {
       b[row][col] = MARK_X;
     } else if (current === MARK_X || current === AUTO_X) {
       b[row][col] = STAR;
-      this.autoFillXAroundStar(b, row, col);
     } else {
       b[row][col] = EMPTY;
-      this.recalcAutoX(b);
     }
 
     this.board.set(b);
@@ -95,7 +93,7 @@ export class StarsGameService {
 
   /**
    * When a star is placed at (row, col):
-   * - Always X its diagonal neighbors (no adjacency allowed)
+   * - Always X all 8 neighbors (no adjacency allowed, including diagonals)
    * - If this row now has 2 stars → X all remaining empty cells in row
    * - If this col now has 2 stars → X all remaining empty cells in col
    * - If this zone now has 2 stars → X all remaining empty cells in zone
@@ -103,8 +101,8 @@ export class StarsGameService {
   private autoFillXAroundStar(b: number[][], qRow: number, qCol: number): void {
     const n = this.size;
 
-    // Diagonal neighbors always get X
-    for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+    // All 8 neighbors always get X (no two stars can touch)
+    for (const [dr, dc] of [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]) {
       const nr = qRow + dr, nc = qCol + dc;
       if (nr >= 0 && nr < n && nc >= 0 && nc < n && b[nr][nc] === EMPTY) {
         b[nr][nc] = AUTO_X;
@@ -411,7 +409,7 @@ export class StarsGameService {
       if (available.length === needed && needed > 0) {
         const cells: { row: number; col: number }[] = [];
         for (const { row: qr, col: qc } of available) {
-          for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+          for (const [dr, dc] of [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]) {
             const nr = qr + dr, nc = qc + dc;
             if (nr >= 0 && nr < n && nc >= 0 && nc < n && b[nr][nc] === EMPTY
               && !available.some(a => a.row === nr && a.col === nc)) {
@@ -441,18 +439,9 @@ export class StarsGameService {
     for (let i = 0; i < stars.length; i++) {
       for (let j = i + 1; j < stars.length; j++) {
         const a = stars[i], bq = stars[j];
-        const sameRow = a.row === bq.row;
-        const sameCol = a.col === bq.col;
-        const sameZone = this.zones[a.row][a.col] === this.zones[bq.row][bq.col];
-        const adjTouch = Math.abs(a.row - bq.row) <= 1 && Math.abs(a.col - bq.col) <= 1
-          && !(sameRow && Math.abs(a.col - bq.col) > 1) // same row non-adjacent is ok, wait...
-        ;
-        // Adjacency: any two stars touching (including diagonals)
+        // Adjacency: any two stars touching (including diagonals) is a conflict
         const touching = Math.abs(a.row - bq.row) <= 1 && Math.abs(a.col - bq.col) <= 1;
-
-        // Conflict if: same row with >2 stars total, same col with >2, same zone with >2, touching
-        if (touching || sameZone) {
-          // Count row/col/zone totals to detect overflow
+        if (touching) {
           conflictSet.add(`${a.row},${a.col}`);
           conflictSet.add(`${bq.row},${bq.col}`);
         }

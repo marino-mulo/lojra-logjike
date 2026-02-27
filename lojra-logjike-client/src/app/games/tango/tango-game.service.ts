@@ -48,6 +48,7 @@ export class TangoGameService {
 
   readonly canUndo = computed(() => this.historyLength() > 0 && !this.gameWon());
 
+  private conflictTimeout: ReturnType<typeof setTimeout> | null = null;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
 
   getSize() { return this.SIZE; }
@@ -312,7 +313,21 @@ export class TangoGameService {
   }
 
   private updateConflicts(): void {
-    this.conflictCells.set(this.detectConflicts(this.board()));
+    if (this.conflictTimeout) {
+      clearTimeout(this.conflictTimeout);
+      this.conflictTimeout = null;
+    }
+
+    const conflicts = this.detectConflicts(this.board());
+
+    if (conflicts.length > 0) {
+      this.conflictTimeout = setTimeout(() => {
+        this.conflictCells.set(this.detectConflicts(this.board()));
+        this.conflictTimeout = null;
+      }, 2000);
+    } else {
+      this.conflictCells.set([]);
+    }
   }
 
   private checkWin(): void {
@@ -518,5 +533,9 @@ export class TangoGameService {
   destroy(): void {
     this.stopTimer();
     this.clearHint();
+    if (this.conflictTimeout) {
+      clearTimeout(this.conflictTimeout);
+      this.conflictTimeout = null;
+    }
   }
 }

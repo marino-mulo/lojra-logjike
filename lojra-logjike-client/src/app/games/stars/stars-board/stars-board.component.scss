@@ -73,17 +73,37 @@
   transition: filter 0.3s;
 }
 
-/* ── Win: pulsing glow on stars ── */
+/* ── Win: dancing stars ── */
 .star-win {
-  animation: star-glow 1.8s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: star-dance 1.6s ease-in-out infinite;
 }
 
-@keyframes star-glow {
-  0%, 100% {
-    filter: brightness(1) drop-shadow(0 0 2px rgba(245, 158, 11, 0.2));
+@keyframes star-dance {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(245, 158, 11, 0.15));
   }
-  50% {
-    filter: brightness(1.15) drop-shadow(0 0 12px rgba(245, 158, 11, 0.7));
+  15% {
+    transform: translateY(-2px) rotate(-4deg) scale(1.03);
+    filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.4));
+  }
+  30% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(245, 158, 11, 0.15));
+  }
+  45% {
+    transform: translateY(-1.5px) rotate(4deg) scale(1.02);
+    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.3));
+  }
+  60% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(245, 158, 11, 0.15));
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(245, 158, 11, 0.15));
   }
 }
 
