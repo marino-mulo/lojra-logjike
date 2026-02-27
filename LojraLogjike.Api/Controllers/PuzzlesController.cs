@@ -76,4 +76,18 @@ public class PuzzlesController : ControllerBase
         var puzzle = StarsPuzzleData.GetPuzzleByDay(dayIndex);
         return Ok(puzzle);
     }
+
+    [HttpGet("snake/today")]
+    public IActionResult GetTodaySnake()
+    {
+        var puzzle = SnakePuzzleData.GetTodayPuzzle();
+        return Ok(puzzle);
+    }
+
+    [HttpGet("snake/{dayIndex:int}")]
+    public IActionResult GetSnakeByDay(int dayIndex)
+    {
+        var puzzle = SnakePuzzleData.GetPuzzleByDay(dayIndex);
+        return Ok(puzzle);
+    }
 }
